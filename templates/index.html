@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome to CTO{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <img src="{{ url_for('static', filename='images/copyright-free-bird.jpg') }}" alt="A bird in a natural Centrala setting">
+    <div class="hero-text">
+        <h1>Welcome to the CTO Bird Sighting Hub</h1>
+        <p>Help us map the wonderful bird populations of Centrala. Register today to post your sightings and contribute to local environmental planning.</p>
+        <a href="{{ url_for('register') }}" class="button">Get Started</a>
+    </div>
+</div>
+<style>
+    /* Specific styles for the hero section on the landing page */
+    .hero {
+        position: relative;
+        text-align: center;
+        color: white;
+    }
+    .hero img {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+        border-radius: 8px;
+        filter: brightness(0.6);
+    }
+    .hero-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .hero-text .button {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #2c5d63;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}

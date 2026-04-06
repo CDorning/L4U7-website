@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Sighting{% endblock %}
+
+{% block content %}
+<h2>Edit Your Sighting</h2>
+<form method="post">
+
+    <label for="location">Location</label>
+    <select name="location" id="location" required>
+        {% for region in regions %}
+            <option value="{{ region }}" {% if region == post.location %}selected{% endif %}>{{ region }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="bird_species">Bird</label>
+    <select name="bird_species" id="bird_species" required>
+        {% for bird in birds %}
+            <option value="{{ bird }}" {% if bird == post.bird_species %}selected{% endif %}>{{ bird }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="comments">Free text comments</label>
+    <textarea id="comments" name="comments" rows="5">{{ post.comments }}</textarea>
+
+    <p><em>Note: Other fields like date, time, and image cannot be changed. To change them, please delete this post and create a new one.</em></p>
+
+    <input type="submit" value="Save Changes" class="button">
+</form>
+{% endblock %}

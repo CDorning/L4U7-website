@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Bird Sightings{% endblock %}
+
+{% block content %}
+    <h1 class="title">All Bird Sightings</h1>
+
+    <div class="search-container">
+        <form hx-post="{{ url_for('search') }}" hx-trigger="submit" hx-target="#posts-table-body" hx-swap="innerHTML">
+            <input type="text" name="search" placeholder="Search sightings...">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <table class="sightings-table">
+        <thead>
+            <tr>
+                <th>Bird Species</th>
+                <th>Location</th>
+                <th>Observer</th>
+                <th>Comments</th>
+                <th>Image</th>
+                {% if g.user %}
+                    <th>Actions</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody id="posts-table-body">
+            {% include '_posts_list.html' %}
+        </tbody>
+    </table>
+{% endblock %}
