@@ -55,6 +55,18 @@ def delete_user(username):
     conn.commit()
     conn.close()
 
+def promote_user(username, is_admin_val):
+    conn = get_db_conn()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE user SET is_admin = ? WHERE username = ?", (is_admin_val, username))
+    if cursor.rowcount > 0:
+        status = "promoted to Admin" if is_admin_val == 1 else "demoted to regular user"
+        print(f"User '{username}' has been {status}.")
+    else:
+        print(f"User '{username}' not found.")
+    conn.commit()
+    conn.close()
+
 def set_user_id(username, new_id_str):
     try:
         new_id = int(new_id_str)
@@ -96,7 +108,7 @@ def set_user_id(username, new_id_str):
         cursor.execute("BEGIN TRANSACTION;")
 
         # Create a temporary user with the new ID
-        cursor.execute("INSERT INTO user (id, username, password) VALUES (?, ?, (SELECT password FROM user WHERE id = ?))", (new_id, username, old_id))
+        cursor.execute("INSERT INTO user (id, username, password, is_admin) SELECT ?, username, password, is_admin FROM user WHERE id = ?", (new_id, old_id))
         
         # Update posts to point to the new user ID
         cursor.execute("UPDATE post SET author_id = ? WHERE author_id = ?", (new_id, old_id))
@@ -121,7 +133,7 @@ def set_user_id(username, new_id_str):
 def list_users():
     conn = get_db_conn()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, username, password FROM user ORDER BY id")
+    cursor.execute("SELECT id, username, is_admin FROM user ORDER BY id")
     users = cursor.fetchall()
     conn.close()
 
@@ -132,33 +144,33 @@ def list_users():
     # Determine column widths for formatting
     id_width = max(len(str(u['id'])) for u in users) if users else 2
     username_width = max(len(u['username']) for u in users) if users else 8
-    password_width = max(len(u['password']) for u in users) if users else 13
+    admin_width = 10
 
     # Headers
     id_width = max(id_width, len("ID"))
     username_width = max(username_width, len("Username"))
-    password_width = max(password_width, len("Password Hash"))
 
-    header_format = f"| {{:<{id_width}}} | {{:<{username_width}}} | {{:<{password_width}}} |"
-    row_format = f"| {{:<{id_width}}} | {{:<{username_width}}} | {{:<{password_width}}} |"
-    divider = f"+{'-' * (id_width+2)}+{'-' * (username_width+2)}+{'-' * (password_width+2)}+"
+    header_format = f"| {{:<{id_width}}} | {{:<{username_width}}} | {{:<{admin_width}}} |"
+    row_format = f"| {{:<{id_width}}} | {{:<{username_width}}} | {{:<{admin_width}}} |"
+    divider = f"+{'-' * (id_width+2)}+{'-' * (username_width+2)}+{'-' * (admin_width+2)}+"
 
     print(divider)
-    print(header_format.format("ID", "Username", "Password Hash"))
+    print(header_format.format("ID", "Username", "Is Admin"))
     print(divider)
 
     for user in users:
-        print(row_format.format(user['id'], user['username'], user['password']))
+        print(row_format.format(user['id'], user['username'], "Yes" if user['is_admin'] == 1 else "No"))
     print(divider)
 
 
 def print_usage():
     print("Usage: python manage_users.py <command> [options]")
     print("\nCommands:")
-    print("  list                        - List all user accounts.")
-    print("  set <username> <password>   - Create a new user or update an existing user's password.")
-    print("  del <username>              - Delete a user and all their posts.")
-    print("  setid <username> <new_id>   - Change a user's ID. WARNING: This is a risky operation.")
+    print("  list                             - List all user accounts.")
+    print("  set <username> <password>        - Create a new user or update an existing user's password.")
+    print("  del <username>                   - Delete a user and all their posts.")
+    print("  promote <username> <1/0>         - Promote (1) or demote (0) a user to/from admin.")
+    print("  setid <username> <new_id>        - Change a user's ID. WARNING: This is a risky operation.")
     sys.exit(1)
 
 if __name__ == '__main__':
@@ -173,6 +185,11 @@ if __name__ == '__main__':
         set_user(sys.argv[2], sys.argv[3])
     elif command == 'del' and len(sys.argv) == 3:
         delete_user(sys.argv[2])
+    elif command == 'promote' and len(sys.argv) == 4:
+        try:
+            promote_user(sys.argv[2], int(sys.argv[3]))
+        except ValueError:
+            print("Error: Status must be 1 (Admin) or 0 (User).")
     elif command == 'setid' and len(sys.argv) == 4:
         set_user_id(sys.argv[2], sys.argv[3])
     else:
