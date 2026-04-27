@@ -10,7 +10,7 @@ from flask.cli import with_appcontext
 DATABASE = 'database.db'
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-SECRET_KEY = 'a-super-secret-key-for-sessions' # In production, use a real, random key
+SECRET_KEY = 'u8$#2kL!9zQw@1xP4rT7vB0sE6mN' # In production this would be hidden
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
