@@ -32,9 +32,14 @@ def close_connection(exception):
 def init_db():
     with app.app_context():
         db = get_db()
+        # LO3 AC 3.1: Reset the database with the updated schema
+        print("Reading schema.sql and recreating tables...")
         with app.open_resource('schema.sql', mode='r') as f:
             db.cursor().executescript(f.read())
+        # LO3 3D1 Mitigation: VACUUM ensures the physical file size is reduced after dropping tables
+        db.execute('VACUUM')
         db.commit()
+        print("Database initialisation complete.")
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -123,7 +128,7 @@ def logout():
 def posts():
     db = get_db()
     all_posts = db.execute(
-        'SELECT p.id, p.author_id, p.location, p.bird_species, p.comments, p.image_filename, u.username '
+        'SELECT p.id, p.author_id, p.location, p.bird_species, p.time_obs, p.date_obs, p.activity, p.duration_mins, p.comments, p.image_filename, u.username '
         'FROM post p JOIN user u ON p.author_id = u.id ORDER BY p.created_at DESC'
     ).fetchall()
     return render_template('posts.html', posts=all_posts)
@@ -133,12 +138,12 @@ def search():
     search_term = request.form.get('search', '')
     db = get_db()
     query = """
-        SELECT p.id, p.location, p.bird_species, p.comments, p.image_filename, u.username
+        SELECT p.id, p.author_id, p.location, p.bird_species, p.time_obs, p.date_obs, p.activity, p.duration_mins, p.comments, p.image_filename, u.username
         FROM post p JOIN user u ON p.author_id = u.id
         WHERE p.bird_species LIKE ? OR p.location LIKE ? OR u.username LIKE ? OR p.comments LIKE ?
         ORDER BY p.created_at DESC
     """
-    # LO3 3D1 Mitigation: Using parameterized queries to prevent SQL Injection
+    # LO3 3D1 Mitigation: Using parameterised queries to prevent SQL Injection
     like_pattern = f'%{search_term}%'
     results = db.execute(query, (like_pattern, like_pattern, like_pattern, like_pattern)).fetchall()
     # Return an HTML fragment for HTMX
@@ -184,7 +189,12 @@ def edit_post(post_id):
         return redirect(url_for('login'))
     
     db = get_db()
-    post = db.execute('SELECT * FROM post WHERE id = ? AND author_id = ?', (post_id, g.user['id'])).fetchone()
+    # Admins can edit any post; regular users can only edit their own
+    if g.user['is_admin']:
+        post = db.execute('SELECT * FROM post WHERE id = ?', (post_id,)).fetchone()
+    else:
+        post = db.execute('SELECT * FROM post WHERE id = ? AND author_id = ?', (post_id, g.user['id'])).fetchone()
+
     if post is None:
         flash('Post not found or you do not have permission to edit it.', 'error')
         return redirect(url_for('posts'))
@@ -192,15 +202,19 @@ def edit_post(post_id):
     if request.method == 'POST':
         # LO3 3M1: CRUD - Update (Editing an existing message)
         db.execute(
-            """UPDATE post SET location=?, bird_species=?, comments=?
+            """UPDATE post SET location=?, time_obs=?, date_obs=?, bird_species=?, activity=?, duration_mins=?, comments=?
                WHERE id = ?""",
-            (request.form['location'], request.form['bird_species'], request.form['comments'], post_id)
+            (
+                request.form['location'], request.form['time_obs'], request.form['date_obs'],
+                request.form['bird_species'], request.form['activity'], request.form['duration_mins'],
+                request.form['comments'], post_id
+            )
         )
         db.commit()
         flash('Post updated successfully.', 'success')
         return redirect(url_for('posts'))
     
-    return render_template('edit_post_form.html', post=post, regions=CENTRAL_REGIONS, birds=BIRD_SPECIES)
+    return render_template('edit_post_form.html', post=post, regions=CENTRAL_REGIONS, birds=BIRD_SPECIES, activities=ACTIVITIES)
 
 @app.route('/delete_post/<int:post_id>', methods=['POST'])
 def delete_post(post_id):
@@ -208,7 +222,11 @@ def delete_post(post_id):
         return redirect(url_for('login'))
 
     db = get_db()
-    post = db.execute('SELECT * FROM post WHERE id = ? AND author_id = ?', (post_id, g.user['id'])).fetchone()
+    # Admins can delete any post; regular users can only delete their own
+    if g.user['is_admin']:
+        post = db.execute('SELECT * FROM post WHERE id = ?', (post_id,)).fetchone()
+    else:
+        post = db.execute('SELECT * FROM post WHERE id = ? AND author_id = ?', (post_id, g.user['id'])).fetchone()
     
     if post:
         # LO3 3M1: CRUD - Delete (Deleting an existing message)
@@ -235,7 +253,7 @@ from flask.cli import with_appcontext
 def init_db_command():
     """Clear the existing data and create new tables."""
     init_db()
-    click.echo('Initialized the database.')
+    click.echo('Initialised the database.')
 
 app.cli.add_command(init_db_command)
 
