@@ -130,13 +130,30 @@ form input, form select, form textarea {
 }
 
 /* --- Posts & Search --- */
-.search-bar input {
-    width: 100%;
-    padding: 12px;
+.search-container {
     margin-bottom: 2rem;
+}
+
+.search-container form {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.search-container input {
+    flex-grow: 1;
+    padding: 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+.search-container button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #2c5d63;
+    color: white;
+    cursor: pointer;
 }
 
 .post {
