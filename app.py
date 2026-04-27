@@ -3,6 +3,8 @@ import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, flash, g, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+import click
+from flask.cli import with_appcontext
 
 # --- Configuration ---
 DATABASE = 'database.db'
@@ -244,9 +246,6 @@ def delete_post(post_id):
     
     return redirect(url_for('posts'))
 
-
-import click
-from flask.cli import with_appcontext
 
 @click.command('init-db')
 @with_appcontext
