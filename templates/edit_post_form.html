@@ -13,6 +13,12 @@
         {% endfor %}
     </select>
 
+    <label for="date_obs">Date of observation</label>
+    <input type="date" id="date_obs" name="date_obs" value="{{ post.date_obs }}" required>
+
+    <label for="time_obs">Time of observation</label>
+    <input type="time" id="time_obs" name="time_obs" value="{{ post.time_obs }}" required>
+
     <label for="bird_species">Bird</label>
     <select name="bird_species" id="bird_species" required>
         {% for bird in birds %}
@@ -20,10 +26,20 @@
         {% endfor %}
     </select>
 
+    <label for="activity">Primary activity</label>
+    <select name="activity" id="activity" required>
+        {% for act in activities %}
+            <option value="{{ act }}" {% if act == post.activity %}selected{% endif %}>{{ act }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="duration_mins">Duration of observation (in minutes)</label>
+    <input type="number" id="duration_mins" name="duration_mins" value="{{ post.duration_mins }}" min="1" required>
+
     <label for="comments">Free text comments</label>
     <textarea id="comments" name="comments" rows="5">{{ post.comments }}</textarea>
 
-    <p><em>Note: Other fields like date, time, and image cannot be changed. To change them, please delete this post and create a new one.</em></p>
+    <p><em>Note: The image cannot be changed. To change the image, please delete this post and create a new one.</em></p>
 
     <input type="submit" value="Save Changes" class="button">
 </form>

@@ -3,6 +3,9 @@
     <tr>
         <td>{{ post.bird_species }}</td>
         <td>{{ post.location }}</td>
+        <td>{{ post.date_obs }} at {{ post.time_obs }}</td>
+        <td>{{ post.activity }}</td>
+        <td>{{ post.duration_mins }} mins</td>
         <td>{{ post.username }}</td>
         <td>{{ post.comments or 'No comments provided.' }}</td>
         <td>
@@ -14,7 +17,7 @@
         </td>
         {% if g.user %} {# Check if user is authenticated at all #}
             <td>
-                {% if g.user['id'] == post.author_id %} {# Only show buttons if user is author #}
+                {% if g.user['id'] == post.author_id or g.user['is_admin'] %} {# Show buttons if user is author OR admin #}
                     <form action="{{ url_for('edit_post', post_id=post.id) }}" method="get" style="display: inline;">
                         <input type="submit" value="Edit" class="button button-edit">
                     </form>
@@ -28,6 +31,6 @@
     {% endfor %}
 {% else %}
     <tr>
-        <td colspan="5">No sightings to display yet. Be the first to post one!</td> {# colspan reduced by 1 #}
+        <td colspan="{{ 9 if g.user else 8 }}">No sightings to display yet. Be the first to post one!</td>
     </tr>
 {% endif %}
