@@ -6,7 +6,8 @@ DROP TABLE IF EXISTS user;
 CREATE TABLE user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL
+  password TEXT NOT NULL,
+  is_admin INTEGER DEFAULT 0 -- 0 for regular user, 1 for admin
 );
 
 -- Post table to store bird sighting data
